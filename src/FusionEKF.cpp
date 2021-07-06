@@ -55,8 +55,8 @@ FusionEKF::FusionEKF()
         0, 0, 1, 0,
         0, 0, 0, 1;
   
-  noise_ax = 9; 
-  noise_ay = 9;
+  int noise_ax = 9; 
+  int noise_ay = 9;
 }
 
 /**
@@ -83,29 +83,40 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
     ekf_.x_ << 1, 1, 1, 1;
     
     cout << "Kalman Filter Initialization " << endl;
-
-    // set the state with the initial location and zero velocity
-    ekf_.x_ << measurement_pack.raw_measurements_[0], // px
-               measurement_pack.raw_measurements_[1], // py
-               0,                                     // vx
-               0;                                     // vy
+    ekf_.P_ = P_;
+    ekf_.F_ = F_;
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) 
     {
       // TODO: Convert radar from polar to cartesian coordinates 
       //         and initialize state.
-      ekf_.x_ = ekf.x_;
-      ekf_.P_ = P_;
-      ekf_.F_ = F_;
+      
+      /* Although radar gives velocity data in the form of the range rate \dot{\rho}, 
+      a radar measurement does not contain enough information to determine 
+      the state variable velocities v_x and v_y. 
+      You can, however, use the radar measurements ρ and ϕ to initialize 
+      the state variable locations p_x and p_y.*/
+      
+      float rho_measured    = measurement_pack.raw_measurements_[0];
+      float phi_measured    = measurement_pack.raw_measurements_[1];
+      //float rhodot_measured = measurement_pack.raw_measurements_[2];
+      
+      
+      ekf_.x_<< rho_measured * cos(phi_measured), // px
+                rho_measured * sin(phi_measured), // py
+                0,                                // vx
+                0;                                // vy
       ekf_.H_ = tools.CalculateJacobian(&ekf_.x_);
       ekf_.R_ = R_radar_;
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) 
     {
       // TODO: Initialize state.
-      ekf_.x_ = ekf.x_;
-      ekf_.P_ = P_;
-      ekf_.F_ = F_;
+      // set the state with the initial location and zero velocity
+      ekf_.x_ << measurement_pack.raw_measurements_[0], // px
+                 measurement_pack.raw_measurements_[1], // py
+                 0,                                     // vx
+                 0;                                     // vy
       ekf_.H_ = H_laser_;
       ekf_.R_ = R_laser_;
     }
@@ -164,12 +175,14 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
   {
     // TODO: Radar updates
     ekf_.H_ = tools.CalculateJacobian(&ekf_.x_);
+    ekf_.R_ = R_radar_;
     ekf_.UpdateEKF(measurement_pack.raw_measurements_);
   } 
   else 
   {
     // TODO: Laser updates
     ekf_.H_ = H_laser_;
+    ekf_.R_ = R_laser_;
     ekf_.Update(measurement_pack.raw_measurements_);
   }
 
