@@ -40,23 +40,6 @@ FusionEKF::FusionEKF()
   // measurement matrix - laser
   H_laser_ << 1, 0, 0, 0,
               0, 1, 0, 0;
-              
-  // state covariance matrix P
-  P_ = MatrixXd(4, 4);
-  P_ << 1, 0, 0,    0,
-        0, 1, 0,    0,
-        0, 0, 1000, 0,
-        0, 0, 0,    1000;
-        
-  // the initial transition matrix F_
-  F_ = MatrixXd(4, 4);
-  F_ << 1, 0, 1, 0,
-        0, 1, 0, 1,
-        0, 0, 1, 0,
-        0, 0, 0, 1;
-  
-  int noise_ax = 9; 
-  int noise_ay = 9;
 }
 
 /**
@@ -69,6 +52,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
   /**
    * Initialization
    */
+  int noise_ax = 9; 
+  int noise_ay = 9;
   if (!is_initialized_) 
   {
     /**
@@ -83,9 +68,18 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
     ekf_.x_ << 1, 1, 1, 1;
     
     cout << "Kalman Filter Initialization " << endl;
-    ekf_.P_ = P_;
-    ekf_.F_ = F_;
-
+    // state covariance matrix P
+    ekf_.P_ = << 1, 0, 0,    0,
+                 0, 1, 0,    0,
+                 0, 0, 1000, 0,
+                 0, 0, 0,    1000;
+    
+    // the initial transition matrix F_
+    ekf_.F_ = 1, 0, 1, 0,
+              0, 1, 0, 1,
+              0, 0, 1, 0,
+              0, 0, 0, 1;
+    
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) 
     {
       // TODO: Convert radar from polar to cartesian coordinates 
