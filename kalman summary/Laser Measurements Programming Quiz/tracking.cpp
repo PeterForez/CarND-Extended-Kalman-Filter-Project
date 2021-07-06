@@ -26,8 +26,8 @@ Tracking::Tracking()
 
   // measurement covariance
   kf_.R_ = MatrixXd(2, 2);
-  kf_.R_ << 0.0225, 0,
-            0, 0.0225;
+  kf_.R_ << 0.0225, 0     ,
+            0     , 0.0225;
 
   // measurement matrix
   kf_.H_ = MatrixXd(2, 4);
@@ -52,7 +52,8 @@ Tracking::~Tracking()
 }
 
 // Process a single measurement
-void Tracking::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
+void Tracking::ProcessMeasurement(const MeasurementPackage &measurement_pack) 
+{
   if (!is_initialized_)
   {
     //cout << "Kalman Filter Initialization " << endl;
@@ -73,7 +74,7 @@ void Tracking::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
   previous_timestamp_ = measurement_pack.timestamp_;
 
-    // TODO: YOUR CODE HERE
+  // TODO: YOUR CODE HERE
   float dt_2 = dt * dt;
   float dt_3 = dt_2 * dt;
   float dt_4 = dt_3 * dt;

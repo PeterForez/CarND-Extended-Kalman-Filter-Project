@@ -45,6 +45,13 @@
   - [More Details About Calculations with Radar Versus Lidar](#more-details-about-calculations-with-radar-versus-lidar)
   - [QUIZ QUESTION](#quiz-question-1)
 - [23: Evaluating KF Performance](#23-evaluating-kf-performance)
+- [Summary](#summary-1)
+  - [1: State](#1-state)
+  - [2: Predicted State](#2-predicted-state)
+  - [3: Prediction](#3-prediction)
+  - [4: Update](#4-update)
+    - [New State](#new-state)
+  - [4: LIDAR vs RADAR](#4-lidar-vs-radar)
 
 # 01: Kalman Filter in C++
 https://www.youtube.com/watch?v=Hsvzm7zDG_A 
@@ -111,7 +118,7 @@ The Kalman equation contains many variables, so here is a high level overview to
 ### Prediction
 Let's say we know an object's current position and velocity , which we keep in the $x$ variable. Now one second has passed. We can predict where the object will be one second later because we knew the object position and velocity one second ago; we'll just assume the object kept going at the same velocity.
 
-The $x' = Fx + \nu x$ equation does these prediction calculations for us.
+The $x' = Fx + \nu$ equation does these prediction calculations for us.
 
 But maybe the object didn't maintain the exact same velocity. Maybe the object changed direction, accelerated or decelerated. So when we predict the position one second later, our uncertainty increases. $P' = FPF^T + Q$ represents this increase in uncertainty.
 
@@ -207,7 +214,7 @@ $$y=z-Hx'$$
 $$S=HP'H^T+R$$
 $$K=P'H^TS^-1$$
 3. New State
-$$x=x+Ky$$
+$$x=x'+Ky$$
 $$P=(1-KH)P'$$
 
 ## Implement a multi-dimensional Kalman Filter
@@ -428,7 +435,7 @@ Some authors describe $Q$ as the complete process noise covariance matrix. And s
 ## Variable Definitions
 To reinforce was what discussed in the video, here is an explanation of what each variable represents:
 
-* $z$ is the measurement vector. For a lidar sensor, the $z$ vector contains the position-x and position-ymeasurements.
+* $z$ is the measurement vector. For a lidar sensor, the $z$ vector contains the position-x and position-y measurements.
 * $H$ is the matrix that projects your belief about the object's current state into the measurement space of the sensor. For lidar, this is a fancy way of saying that we discard velocity information from the state variable since the lidar sensor only measures position: The state vector $x$ contains information about $[p_x, p_y, v_x, v_y]$ whereas the $z$ vector will only contain $[px, py]$. Multiplying $Hx$ allows us to compare $x$, our belief, with $z$, the sensor measurement.
 * What does the prime notation in the $x$ vector represent? The prime notation like $p_x'$ means you have already done the prediction step but have not done the measurement step yet. In other words, the object was at $p_x$. After time $\Delta{t}$, you calculate where you believe the object will be based on the motion model and get $p_x'$.
 
@@ -593,7 +600,7 @@ To derive a linear approximation for the h function, we will only keep the expan
 Let's first calculate the Jacobian matrix for the extended Kalman filter. Then we'll show the difference between the Kalman filter equations and the extended Kalman filter equations.
 
 # 19: Jacobian Matrix
-Jacobian, $H_j$H is:
+Jacobian, $H_j$ is:
 $$
 \Large H_j = \begin{bmatrix} \frac{p_x}{\sqrt[]{p_x^2 + p_y^2}} & \frac{p_y}{\sqrt[]{p_x^2 + p_y^2}} & 0 & 0\\ -\frac{p_y}{p_x^2 + p_y^2} & \frac{p_x}{p_x^2 + p_y^2} & 0 & 0\\ \frac{p_y(v_x p_y - v_y p_x)}{(p_x^2 + p_y^2)^{3/2}} & \frac{p_x(v_y p_x - v_x p_y)}{(p_x^2 + p_y^2)^{3/2}} & \frac{p_x}{\sqrt[]{p_x^2 + p_y^2}} & \frac{p_y}{\sqrt[]{p_x^2 + p_y^2}}\\ \end{bmatrix}
 $$
@@ -629,8 +636,8 @@ int main() {
   return 0;
 }
 
-MatrixXd CalculateJacobian(const VectorXd& x_state) {
-
+MatrixXd CalculateJacobian(const VectorXd& x_state) 
+{
   MatrixXd Hj(3,4);
   // recover state parameters
   float px = x_state(0);
@@ -644,7 +651,8 @@ MatrixXd CalculateJacobian(const VectorXd& x_state) {
   float c3 = (c1*c2);
 
   // check division by zero
-  if (fabs(c1) < 0.0001) {
+  if (fabs(c1) < 0.0001) 
+  {
     cout << "CalculateJacobian () - Error - Division by Zero" << endl;
     return Hj;
   }
@@ -699,7 +707,7 @@ One other important point when calculating $y$ with radar sensor data: the secon
 To summarize:
 
 * for measurement updates with lidar, we can use the $H$ matrix for calculating $y$, $S$, $K$ and $P$.
-* for radar, $H_j$ is used to calculate SS, KK and PP.
+* for radar, $H_j$ is used to calculate $S$, $K$ and $P$.
 ## QUIZ QUESTION
 Compared to Kalman Filters, how would the Extended Kalman Filter result differ when the prediction function and measurement function are both linear?
 - [x] The Extended Kalman Filter's result would be the same as the standard Kalman Filter's result.
@@ -707,7 +715,7 @@ Compared to Kalman Filters, how would the Extended Kalman Filter result differ w
 - [ ] The Extended Kalman Filter's result would be less accurate than the kalman filter's result.
 - [ ] The Extended Kalman Filter's result would be more accurate than the kalman filter's result.
 
-> If f and h are linear functions, then the Extended Kalman Filter generates exactly the same result as the standard Kalman Filter. Actually, if f and h are linear then the Extended Kalman Filter F_j turns into f and H_j turns into h. All that's left is the same ol' standard Kalman Filter!
+> If $f$ and $h$ are linear functions, then the Extended Kalman Filter generates exactly the same result as the standard Kalman Filter. Actually, if f and h are linear then the Extended Kalman Filter $F_j$ turns into $f$ and $H_j$ turns into $h$. All that's left is the same ol' standard Kalman Filter!
 
 > In our case we have a linear motion model, but a nonlinear measurement model when we use radar observations. So, we have to compute the Jacobian only for the measurement function.
 
@@ -795,8 +803,76 @@ VectorXd CalculateRMSE(const vector<VectorXd> &estimations, const vector<VectorX
 }
 ```
 
+# Summary
+## 1: State
+TERM| DESCRIPTIOM
+--|--
+$x=\begin{pmatrix} p_x \\ p_y\\ v_x \\ v_y \end{pmatrix}$| Object State Vector
+$p_x$|x-Position
+$p_y$|y-Position
+$v_x$|x-Velocity
+$v_y$|y-Velocity
+$P$|Object Uncertainty Covariance Matrix
+
+## 2: Predicted State
+TERM| DESCRIPTIOM
+--|-- 
+$x'=\begin{pmatrix} p'_x \\ p'_y\\ v'_x \\ v'_y \end{pmatrix}$|  Predicted Object State Vector
+$p'_x$|Predicted x-Position
+$p'_y$|Predicted y-Position
+$v'_x$|Predicted x-Velocity
+$v'_y$|Predicted y-Velocity
+$P'$|Predicted Object Uncertainty Covariance Matrix
+
+## 3: Prediction
+TERM| DESCRIPTIOM
+--|-- 
+$x' = Fx+\nu$|State transition Function
+$P'=FPF^T+Q$| Predicted Object Uncertainty Covariance Matrix
+$F = \begin{pmatrix} 1 & 0 & \Delta t & 0 \\\ 0 & 1 & 0 & \Delta t \\\ 0 & 0 & 1 & 0 \\\ 0 & 0 & 0 & 1 \end{pmatrix}$|State Transition Matrix
+$\nu \sim N(0, Q)$|Process Noise
+$Q$|Process Covariance Matrix
+
+$$
+Q = \begin{pmatrix} \frac{\Delta t^4}{4} \sigma_{ax}^2 & 0 & \frac{\Delta t^3}{2} \sigma_{ax}^2 & 0\\ 0 & \frac{\Delta t^4}{4} \sigma_{ay}^2 & 0 & \frac{\Delta t^3}{2} \sigma_{ay}^2\\ \frac{\Delta t^3}{2}\sigma_{ax}^2& 0 & \Delta t^2 \sigma_{ax}^2 & 0\\ 0 & \frac{\Delta t^3}{2} \sigma_{ay}^2 & 0 & \Delta t^2 \sigma_{ay}^2 \end{pmatrix}
+$$
 
 
+
+## 4: Update
+TERM| DESCRIPTIOM
+--|--
+$z=h(x')+\omega =Hx'+\omega$| The Measurement function
+$z_{\text{pred}}= h(x')=Hx'$| The predicted measurement
+$\omega \sim N(0,R)$| Measurement Noise
+$R$|Measurement Covariance Matrix
+
+LIDAR| RADAR
+--|--
+$y = z-Hx'$|$y=z-h(x')$
+$S=HP'H^T+R$|$S=H_jP'H_j^T+R$
+$K=P'H^TS^-1$|$K=P'H_j^TS^-1$
+
+### New State
+$$x=x'+Ky$$
+
+LIDAR| RADAR
+--|--
+$P=(1-KH)P'$|$P=(1-KH_j)P'$
+
+## 4: LIDAR vs RADAR
+* For LIDAR
+$$
+H = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \end{pmatrix}
+$$
+* For RADAR used in the prediction step
+$$
+h(x')= \begin{pmatrix} \rho\\ \phi\\ \dot{\rho} \end{pmatrix} = \begin{pmatrix} \sqrt{ p{'}_x^2 + p{'}_y^2 }\\ \arctan(p_y' / p_x')\\ \frac{p_x' v_x' + p_y' v_y'}{\sqrt{p{'}_x^2 + p{'}_{y}^2}} \end{pmatrix}
+$$
+* For RADAR used in
+$$
+\Large H_j = \begin{bmatrix} \frac{p_x}{\sqrt[]{p_x^2 + p_y^2}} & \frac{p_y}{\sqrt[]{p_x^2 + p_y^2}} & 0 & 0\\ -\frac{p_y}{p_x^2 + p_y^2} & \frac{p_x}{p_x^2 + p_y^2} & 0 & 0\\ \frac{p_y(v_x p_y - v_y p_x)}{(p_x^2 + p_y^2)^{3/2}} & \frac{p_x(v_y p_x - v_x p_y)}{(p_x^2 + p_y^2)^{3/2}} & \frac{p_x}{\sqrt[]{p_x^2 + p_y^2}} & \frac{p_y}{\sqrt[]{p_x^2 + p_y^2}}\\ \end{bmatrix}
+$$
 
 
 
