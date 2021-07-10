@@ -40,6 +40,8 @@ FusionEKF::FusionEKF()
   // measurement matrix - laser
   H_laser_ << 1, 0, 0, 0,
               0, 1, 0, 0;
+              
+  ekf
 }
 
 /**
@@ -68,12 +70,14 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
     ekf_.x_ << 1, 1, 1, 1;
     
     cout << "Initialize state covariance matrix P" << endl;
+    ekf_.P_ = VectorXd(4,4); 
     ekf_.P_ << 1, 0, 0,    0,
                0, 1, 0,    0,
                0, 0, 1000, 0,
                0, 0, 0,    1000;
     
     cout << "Initialize transition matrix F" << endl;
+    ekf_.F_ = VectorXd(4,4); 
     ekf_.F_ << 1, 0, 1, 0,
                0, 1, 0, 1,
                0, 0, 1, 0,
