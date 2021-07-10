@@ -91,6 +91,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
       You can, however, use the radar measurements ρ and ϕ to initialize 
       the state variable locations p_x and p_y.*/
       
+      cout << "RADAR Kalman Filter Initialization " << endl;
       float rho_measured    = measurement_pack.raw_measurements_[0];
       float phi_measured    = measurement_pack.raw_measurements_[1];
       //float rhodot_measured = measurement_pack.raw_measurements_[2];
@@ -107,6 +108,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
     {
       // TODO: Initialize state.
       // set the state with the initial location and zero velocity
+      cout << "LASER Kalman Filter Initialization " << endl;
       ekf_.x_ << measurement_pack.raw_measurements_[0], // px
                  measurement_pack.raw_measurements_[1], // py
                  0,                                     // vx
@@ -118,6 +120,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
     previous_timestamp_ = measurement_pack.timestamp_;
     // done initializing, no need to predict or update
     is_initialized_ = true;
+    return; // This is the end of initialization
   }
 
   /**
