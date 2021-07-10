@@ -74,14 +74,22 @@ void KalmanFilter::UpdateEKF(const VectorXd &z)
   float vy = x_(3);
   
   float rho     = sqrt(px*px+py*py);
-  float phi     = atan(py/px);         //https://www.cplusplus.com/reference/cmath/atan/
-  cout  << "Phi = " << phi*180/M_PI << endl; //https://stackoverflow.com/questions/1727881/how-to-use-the-pi-constant-in-c
+  float phi     = atan2(py,px);
   float rho_dot = (px*vx + py*vy)/rho;
   
   VectorXd  z_pred(3,1);
   z_pred << rho, phi, rho_dot;
   
   VectorXd y   = z - z_pred;  
+  // Using the answer of the question in https://knowledge.udacity.com/questions/504150
+  while (y(1)>M_PI)
+  {
+    y(1) -= 2 * M_PI;
+  }
+  while (y(1)<-M_PI)
+  {
+    y(1) += 2 * M_PI;
+  }
   MatrixXd Ht  = H_.transpose();
   MatrixXd S   = H_ * P_ * Ht + R_;
   MatrixXd Si  = S.inverse();
