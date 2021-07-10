@@ -2,6 +2,8 @@
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using std::cout;
+using std::endl;
 
 /* 
  * Please note that the Eigen library does not initialize 
@@ -73,7 +75,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z)
   
   float rho     = sqrt(px*px+py*py);
   float phi     = atan(py/px);         //https://www.cplusplus.com/reference/cmath/atan/
-  cout  << "Phi = " << phi*180/M_PI; //https://stackoverflow.com/questions/1727881/how-to-use-the-pi-constant-in-c
+  cout  << "Phi = " << phi*180/M_PI << endl; //https://stackoverflow.com/questions/1727881/how-to-use-the-pi-constant-in-c
   float rho_dot = (px*vx + py*vy)/rho;
   
   VectorXd  z_pred(3,1);
