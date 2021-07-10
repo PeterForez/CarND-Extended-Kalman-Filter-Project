@@ -67,14 +67,13 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
     ekf_.x_ = VectorXd(4);
     ekf_.x_ << 1, 1, 1, 1;
     
-    cout << "Kalman Filter Initialization " << endl;
-    // state covariance matrix P
+    cout << "Initialize state covariance matrix P" << endl;
     ekf_.P_ << 1, 0, 0,    0,
                0, 1, 0,    0,
                0, 0, 1000, 0,
                0, 0, 0,    1000;
     
-    // the initial transition matrix F_
+    cout << "Initialize transition matrix F" << endl;
     ekf_.F_ << 1, 0, 1, 0,
                0, 1, 0, 1,
                0, 0, 1, 0,
